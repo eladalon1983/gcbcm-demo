@@ -15,18 +15,42 @@
         <span>Capture-Current-Tab</span>
       </h1>
       <p>Expect the Hall of Mirrors effect.</p>
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas"></canvas>
+      <div id="div">
+        <video id="video" autoplay playsinline hidden></video>
+        <canvas id="canvas" hidden></canvas>
+      </div>
+      <br />
+      <h2 id="clarification">The video/screenshot will appear here.</h2>
       <br />
       <button onclick="videoClicked();">Capture video</button>
       <button onclick="screenshotClicked();">Capture screenshot</button>
       <div id="errorMsg" style="color: red"></div>
       <p>
-        Display the video stream from
-        <code>getCurrentBrowsingContextMedia()</code> in a video element.
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      </p>
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      </p>
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
+        ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+        laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+        voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+        cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
       </p>
     </div>
     <script>
+      let canvas = document.getElementById("canvas");
+      let video = document.getElementById("video");
+
       function drawCanvas(canvas, img) {
         canvas.width = window.innerWidth / 2;
         canvas.height = window.innerHeight / 2;
@@ -41,10 +65,16 @@
       }
 
       async function videoClicked(e) {
+        canvas.hidden = true;
+        video.hidden = true;
         document.querySelector("#errorMsg").innerHTML = "";
         try {
           const stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
+          document.getElementById("clarification").innerHTML = "";
           document.querySelector("video").srcObject = stream;
+          video.width = window.innerWidth / 2;
+          video.height = window.innerHeight / 2;
+          video.hidden = false;
         } catch (e) {
           document.querySelector("#errorMsg").innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
         }
@@ -53,11 +83,15 @@
       async function screenshotClicked(e) {
         document.querySelector("#errorMsg").innerHTML = "";
         try {
+          canvas.hidden = true;
+          video.hidden = true;
           const stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
+          document.getElementById("clarification").innerHTML = "";
           let track = stream.getVideoTracks()[0];
           let imageCapture = new ImageCapture(track);
           imageCapture.grabFrame().then((imageBitmap) => {
-            drawCanvas(document.getElementById("canvas"), imageBitmap);
+            drawCanvas(canvas, imageBitmap);
+            canvas.hidden = false;
             track.stop();
           });
         } catch (e) {
