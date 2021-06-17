@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1"
+    />
+    <meta name="mobile-web-app-capable" content="no" />
+    <meta id="theme-color" name="theme-color" content="#ffffff" />
+    <link rel="icon" href="#" />
+    <title>get-current-tab</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <h1>
+        <span>Capture-Current-Tab</span>
+      </h1>
+      <p>Expect the Hall of Mirrors effect.</p>
+      <video id="video" autoplay playsinline></video>
+      <button id="gcbcm" onclick="gcbcmClicked();">Capture-Current-Tab</button>
+
+      <div id="errorMsg" style="color: red"></div>
+
+      <p>
+        Display the video stream from
+        <code>getCurrentBrowsingContextMedia()</code> in a video element.
+      </p>
+    </div>
+    <script>
+      async function gcbcmClicked(e) {
+        document.querySelector("#errorMsg").innerHTML = "";
+        try {
+          const stream =
+            await navigator.mediaDevices.getCurrentBrowsingContextMedia({
+              video: true,
+              audio: true,
+            });
+          document.querySelector("video").srcObject = stream;
+        } catch (e) {
+          document.querySelector(
+            "#errorMsg"
+          ).innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>
