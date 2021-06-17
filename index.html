@@ -16,7 +16,10 @@
       </h1>
       <p>Expect the Hall of Mirrors effect.</p>
       <video id="video" autoplay playsinline></video>
-      <button id="gcbcm" onclick="gcbcmClicked();">Capture-Current-Tab</button>
+      <canvas id="canvas"></canvas>
+      <br />
+      <button onclick="videoClicked();">Capture video</button>
+      <button onclick="screenshotClicked();">Capture screenshot</button>
       <div id="errorMsg" style="color: red"></div>
       <p>
         Display the video stream from
@@ -24,19 +27,41 @@
       </p>
     </div>
     <script>
-      async function gcbcmClicked(e) {
+      function drawCanvas(canvas, img) {
+        canvas.width = window.innerWidth / 2;
+        canvas.height = window.innerHeight / 2;
+        console.log(`canvas.width = ${canvas.width}, canvas.height = ${canvas.height}`);
+        let ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+        let x = (canvas.width - img.width * ratio) / 2;
+        let y = (canvas.height - img.height * ratio) / 2;
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        canvas
+          .getContext("2d")
+          .drawImage(img, 0, 0, img.width, img.height, x, y, img.width * ratio, img.height * ratio);
+      }
+
+      async function videoClicked(e) {
         document.querySelector("#errorMsg").innerHTML = "";
         try {
-          const stream =
-            await navigator.mediaDevices.getCurrentBrowsingContextMedia({
-              video: true,
-              audio: true,
-            });
+          const stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
           document.querySelector("video").srcObject = stream;
         } catch (e) {
-          document.querySelector(
-            "#errorMsg"
-          ).innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+          document.querySelector("#errorMsg").innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+        }
+      }
+
+      async function screenshotClicked(e) {
+        document.querySelector("#errorMsg").innerHTML = "";
+        try {
+          const stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
+          let track = stream.getVideoTracks()[0];
+          let imageCapture = new ImageCapture(track);
+          imageCapture.grabFrame().then((imageBitmap) => {
+            drawCanvas(document.getElementById("canvas"), imageBitmap);
+            track.stop();
+          });
+        } catch (e) {
+          document.querySelector("#errorMsg").innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
         }
       }
     </script>
