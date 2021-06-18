@@ -54,8 +54,9 @@
       <br />
       <h2 id="clarification">The video/screenshot will appear here.</h2>
       <br />
-      <button onclick="videoClicked();">Capture video</button>
       <button onclick="screenshotClicked();">Capture screenshot</button>
+      <button onclick="videoClicked('new');">Capture video</button>
+      <button onclick="videoClicked('old');">Old API</button>
       <div id="errorMsg" style="color: red"></div>
       <p>
         Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt
@@ -82,7 +83,9 @@
     <script>
       let canvas = document.getElementById("canvas");
       let video = document.getElementById("video");
-      let div = document.querySelector("div");
+      let div = document.getElementById("div");
+      let clarification = document.getElementById("clarification");
+      let errorMsg = document.getElementById("errorMsg");
 
       function drawCanvas(canvas, img) {
         canvas.width = window.innerWidth / 2;
@@ -97,39 +100,53 @@
           .drawImage(img, 0, 0, img.width, img.height, x, y, img.width * ratio, img.height * ratio);
       }
 
-      async function videoClicked(e) {
+      function reset() {
         canvas.hidden = true;
         video.hidden = true;
-        document.querySelector("#errorMsg").innerHTML = "";
-        try {
-          const stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
-          document.getElementById("clarification").innerHTML = "";
-          document.querySelector("video").srcObject = stream;
-          video.width = window.innerWidth / 2;
-          video.height = window.innerHeight / 2;
-          video.hidden = false;
-        } catch (e) {
-          document.querySelector("#errorMsg").innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+        if (video.srcObject) {
+          video.srcObject.getVideoTracks()[0].stop();
         }
+        errorMsg.innerHTML = "";
+        clarification.innerHTML = "The video/screenshot will appear here.";
       }
 
       async function screenshotClicked(e) {
-        document.querySelector("#errorMsg").innerHTML = "";
+        reset();
+        let stream;
         try {
-          canvas.hidden = true;
-          video.hidden = true;
-          const stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
-          document.getElementById("clarification").innerHTML = "";
-          let track = stream.getVideoTracks()[0];
-          let imageCapture = new ImageCapture(track);
-          imageCapture.grabFrame().then((imageBitmap) => {
-            drawCanvas(canvas, imageBitmap);
-            canvas.hidden = false;
-            track.stop();
-          });
+          stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
         } catch (e) {
-          document.querySelector("#errorMsg").innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+          errorMsg.innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+          return;
         }
+
+        clarification.innerHTML = "";
+        let track = stream.getVideoTracks()[0];
+        let imageCapture = new ImageCapture(track);
+        imageCapture.grabFrame().then((imageBitmap) => {
+          drawCanvas(canvas, imageBitmap);
+          canvas.hidden = false;
+          track.stop();
+        });
+      }
+
+      async function videoClicked(e, version) {
+        reset();
+        let stream;
+        try {
+          stream =
+            version == "new"
+              ? await navigator.mediaDevices.getCurrentBrowsingContextMedia()
+              : await navigator.mediaDevices.getDisplayMedia();
+        } catch (e) {
+          errorMsg.innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
+          return;
+        }
+        clarification.innerHTML = "";
+        video.srcObject = stream;
+        video.width = window.innerWidth / 2;
+        video.height = window.innerHeight / 2;
+        video.hidden = false;
       }
 
       div.width = window.innerWidth / 2;
