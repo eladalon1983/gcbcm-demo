@@ -91,6 +91,12 @@
       let clarification = document.getElementById("clarification");
       let errorMsg = document.getElementById("errorMsg");
 
+      // Verify version. Unfortunately, since this is in Origin Trial, it went
+      // through some changes between m93 and m94.
+      const newApiVersion =
+        navigator.userAgent.includes("Chrome/") &&
+        navigator.userAgent.split("Chrome/")[1].split(".")[0] >= 94;
+
       function drawCanvas(canvas, img) {
         canvas.width = window.innerWidth / 2;
         canvas.height = window.innerHeight / 2;
@@ -118,7 +124,12 @@
         reset();
         let stream;
         try {
-          stream = await navigator.mediaDevices.getCurrentBrowsingContextMedia();
+          stream = await (newApiVersion
+            ? navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                preferCurrentTab: true,
+              })
+            : navigator.mediaDevices.getCurrentBrowsingContextMedia());
         } catch (e) {
           errorMsg.innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
           return;
@@ -139,8 +150,13 @@
         let stream;
         try {
           stream =
-            version == "new"
-              ? await navigator.mediaDevices.getCurrentBrowsingContextMedia()
+          version == "new"
+              ? await (newApiVersion
+                  ? navigator.mediaDevices.getDisplayMedia({
+                      video: true,
+                      preferCurrentTab: true,
+                    })
+                  : navigator.mediaDevices.getCurrentBrowsingContextMedia())
               : await navigator.mediaDevices.getDisplayMedia();
         } catch (e) {
           errorMsg.innerHTML += `<p>getUserMedia error: ${e.name}</p>`;
